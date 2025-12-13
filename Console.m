@@ -18,10 +18,10 @@ classdef Console
         end
 
         function run(obj)
-            fprintf("Running console.\n=====================\n\n");
+            fprintf("Running console. \n=====================\n\n");
             
             while ~obj.killFlag
-                command = input("Enter a command: ", "s");
+                command = input("Enter a command (type exit or press Ctrl+C to exit): ", "s");
                 obj = obj.parseCommand(command);
             end
         end
@@ -29,8 +29,10 @@ classdef Console
         function obj = parseCommand(obj, command)
             if lower(command) == "exit"
                 obj.killFlag = true;
-                fprintf("Will exit\n");
+                fprintf("Bye\n");
             end
+
+            
         end
     end
 end
