@@ -70,10 +70,10 @@ classdef RHXClient
                 obj RHXClient
                 payload
                 args.InFormat string = "uint8"
-                args.ErrorWaitMS single = 200
             end
 
             write(obj.tcpClient, payload, args.InFormat);
+            pause(0.05);
         end
 
         function output = flushOutput(obj, args)
@@ -93,6 +93,79 @@ classdef RHXClient
                 output = read(obj.tcpClient, obj.tcpClient.NumBytesAvailable, args.OutFormat);
             else
                 output = "";
+            end
+        end
+
+        %% higher-level methods
+        function err = configureAmplifierStimulation(obj, channel, args)
+            arguments
+                obj RHXClient
+                channel string
+                args dictionary
+            end
+
+            if isKey(args, "Shape"); obj.inOnlyCommand(sprintf("set %s.Shape %s", channel, lookup(args, "Shape"))); end
+            if isKey(args, "Polarity"); obj.inOnlyCommand(sprintf("set %s.Polarity %s", channel, lookup(args, "Polarity"))); end
+            if isKey(args, "Source"); obj.inOnlyCommand(sprintf("set %s.Source %s", channel, lookup(args, "Source"))); end
+
+            if isKey(args, "IsPulseTrain")
+                if lookup(args, "IsPulseTrain") == "True"
+                    obj.inOnlyCommand(sprintf("set %s.PulseOrTrain PulseTrain", channel));
+
+                    if ~isKey(args, "NumPulses")
+                        error("IsPulseTrain must be supplied with NumPulses");
+                    else
+                        obj.inOnlyCommand(sprintf("set %s.NumberOfStimPulses %s", channel, lookup(args, "NumPulses")));
+                    end
+                else
+                    obj.inOnlyCommand(sprintf("set %s.PulseOrTrain SinglePulse", channel));
+                end
+            end
+
+            if isKey(args, "DurationUS")
+                halfDurationUS = round(lookup(args, "DurationUS") / 2);
+                obj.inOnlyCommand(sprintf("set %s.FirstPhaseDurationMicroseconds %s", channel, halfDurationUS));
+                obj.inOnlyCommand(sprintf("set %s.SecondPhaseDurationMicroseconds %s", channel, halfDurationUS));
+            end
+
+            if isKey(args, "AmplitudeUA")
+                obj.inOnlyCommand(sprintf("set %s.FirstPhaseAmplitudeMicroAmps %s", channel, lookup(args, "AmplitudeUA")));
+                obj.inOnlyCommand(sprintf("set %s.SecondPhaseAmplitudeMicroAmps %s", channel, lookup(args, "AmplitudeUA")));
+            end
+
+            obj.inOnlyCommand("execute UploadStimParameters");
+
+            output = obj.flushOutput();
+            if output ~= ""
+                fprintf("Command completed with potential errors: %s\n", output);
+                err = output;
+            else
+                fprintf("Command completed successfully\n");
+                err = "";
+            end
+        end
+
+        function err = toggleStimEnable(obj, channel, enableState)
+            arguments
+                obj RHXClient
+                channel string
+                enableState logical
+            end
+
+            if enableState
+                enableString = "True";
+                fprintf("Enabling stimulation for channel %s\n", channel);
+            else
+                enableString = "False";
+                fprintf("Disabling stimulation for channel %s\n", channel);
+            end
+            obj.inOnlyCommand(sprintf("set %s.StimEnabled %s", channel, enableString));
+
+            err = obj.flushOutput();
+            if err ~= ""
+                fprintf("Command completed with potential errors: %s\n", err);
+            else
+                fprintf("Command completed successfully\n");
             end
         end
     end

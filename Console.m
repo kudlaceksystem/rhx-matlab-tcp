@@ -39,11 +39,23 @@ classdef Console
                     params = splitCommand(2:end);
                 else
                     verb = splitCommand(1);
-                    params = "";
+                    params = [];
+                end
+
+                if verb == "List-Commands" || verb == "Help"
+                    fprintf("Sorry, no help implemented yet!\n");
                 end
 
                 if verb == "Stim"
                     obj.manualStimTrigger(params);
+                end
+
+                if verb == "AmpStim-Conf"
+                    obj.configureStimulation(params);
+                end
+
+                if verb == "Toggle-Stim"
+                    obj.toggleStimulation(params);
                 end
             end
         end
@@ -64,6 +76,58 @@ classdef Console
                 fprintf("Stimulation failed. Details: %s\n", stimError);
             else
                 fprintf("No error\n");
+            end
+        end
+
+        function obj = configureStimulation(obj, params)
+            if isempty(params)
+                fprintf("Parameter configuration cannot be called without arguments\n");
+                return;
+            end
+
+            % define allowed keys
+
+            % parse parameters
+            keys = [];
+            values = [];
+
+            for i = 1:numel(params)
+                splitParam = split(params(i), "=");
+                if numel(splitParam) ~= 2
+                    warning("Warning: parameter with value %s has invalid syntax!", params(i));
+                    continue
+                end
+
+                keys = [keys, splitParam(1)];
+                values = [values, splitParam(2)];
+            end
+
+            paramDict = dictionary(keys, values);
+
+            % check that the channel has been specified
+            if ~isKey(paramDict, "Channel")
+                fprintf("No channel specified.\n");
+                return;
+            end
+
+            % display for the user's convenience
+            fprintf("Parsed parameters:\n");
+            disp(paramDict);
+
+            % pass to server
+            obj.rhxClient.configureAmplifierStimulation(lookup(paramDict, "Channel"), paramDict);
+        end
+
+        function obj = toggleStimulation(obj, params)
+            if numel(params) ~= 2
+                fprintf("Expected exactly 2 parameters: channel and stim toggle state.\n");
+                return;
+            end
+
+            if lower(params(2)) == "on"
+                obj.rhxClient.toggleStimEnable(params(1), true);
+            else
+                obj.rhxClient.toggleStimEnable(params(1), false);
             end
         end
     end
