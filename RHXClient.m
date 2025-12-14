@@ -8,7 +8,7 @@ classdef RHXClient
         function obj = RHXClient(args)
             arguments
                 args.ServerAddress string = "127.0.0.1"
-                args.ServerPort single = 8000
+                args.ServerPort single = 5000
             end
 
             try
