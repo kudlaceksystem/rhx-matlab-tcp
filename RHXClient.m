@@ -127,9 +127,9 @@ classdef RHXClient
             end
 
             if isKey(args, "DurationUS")
-                halfDurationUS = round(lookup(args, "DurationUS") / 2);
-                obj.inOnlyCommand(sprintf("set %s.FirstPhaseDurationMicroseconds %s", channel, halfDurationUS));
-                obj.inOnlyCommand(sprintf("set %s.SecondPhaseDurationMicroseconds %s", channel, halfDurationUS));
+                halfDurationUS = round(str2double(lookup(args, "DurationUS")) / 2);
+                obj.inOnlyCommand(sprintf("set %s.FirstPhaseDurationMicroseconds %s", channel, num2str(halfDurationUS)));
+                obj.inOnlyCommand(sprintf("set %s.SecondPhaseDurationMicroseconds %s", channel, num2str(halfDurationUS)));
             end
 
             if isKey(args, "AmplitudeUA")
@@ -167,9 +167,9 @@ classdef RHXClient
             if isKey(args, "Source"); obj.inOnlyCommand(sprintf("set %s.Source %s", channel, lookup(args, "Source"))); end
 
             if isKey(args, "DurationUS")
-                halfDurationUS = round(lookup(args, "DurationUS") / 2);
-                obj.inOnlyCommand(sprintf("set %s.FirstPhaseDurationMicroseconds %s", channel, halfDurationUS));
-                obj.inOnlyCommand(sprintf("set %s.SecondPhaseDurationMicroseconds %s", channel, halfDurationUS));
+                halfDurationUS = round(str2num(lookup(args, "DurationUS")) / 2);
+                obj.inOnlyCommand(sprintf("set %s.FirstPhaseDurationMicroseconds %s", channel, num2str(halfDurationUS)));
+                obj.inOnlyCommand(sprintf("set %s.SecondPhaseDurationMicroseconds %s", channel, num2str(halfDurationUS)));
             end
 
             if isKey(args, "AmplitudeV")
